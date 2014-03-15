@@ -2,50 +2,46 @@
 /**
  * @file
  * Take the user when they return from Twitter. Get access tokens.
- * Verify credentials and redirect to based on response from Twitter.
+ * Verify credentials.
  */
 
-/* Start session and load lib */
-session_start();
+/* Load lib */
 require_once('twitteroauth.php');
 require_once('config.php');
 require_once('databaseClasses.php');
 
 $checkUser = new User();
 $checkUser->authorizeRequest($_REQUEST['email']);
-echo var_dump($checkUser->getData());
+$keys = $checkUser->getData();
 
-/*
-// If the oauth_token is old redirect to the connect page. 
+$oauth_token = $keys[0];
+$oauth_token_secret = $keys[1];
+
+// Create TwitteroAuth object with app key/secret and token key/secret from default phase 
+$connection = new TwitterOAuth(CONSUMER_KEY, CONSUMER_SECRET, $oauth_token, $oauth_token_secret);
+
+// Request access tokens from twitter 
+$access_token = $connection->getAccessToken($_REQUEST['oauth_verifier'], $oauth_token, $oauth_token_secret);
+
+/*============ Haven't gotten to this code yet
+If the oauth_token is old redirect to the connect page. 
 if (isset($_REQUEST['oauth_token']) && $_SESSION['oauth_token'] !== $_REQUEST['oauth_token']) {
   $_SESSION['oauth_status'] = 'oldtoken';
   phpRequest('clearsessions', false);
-}
+}*/
 
-// Create TwitteroAuth object with app key/secret and token key/secret from default phase 
-$connection = new TwitterOAuth(CONSUMER_KEY, CONSUMER_SECRET, $_SESSION['oauth_token'], $_SESSION['oauth_token_secret']);
-
-// Request access tokens from twitter 
-$access_token = $connection->getAccessToken($_REQUEST['oauth_verifier']);
-
-// Save the access tokens. Normally these would be saved in a database for future use.
-$_SESSION['access_token'] = $access_token;
-
-// Remove no longer needed request tokens 
-//unset($_SESSION['oauth_token']);
-//unset($_SESSION['oauth_token_secret']);
+// Save the access token and long-lasting credentials in a database for future use.
+$checkUser->logAccessKey($_REQUEST['email'], $access_token['oauth_token'], $access_token['oauth_token_secret']);
 
 
 // If HTTP response is 200 continue otherwise send to connect page to retry
 if (200 == $connection->http_code) {
   // The user has been verified and the access tokens can be saved for future use
-  $_SESSION['status'] = 'verified';
-  echo $access_token;
+  echo "Success.";
 } else {
   // Save HTTP status for error dialog on connect page.
   // echo "<script type='text/javascript'>phpRequest('clearsessions', false);";
-  echo (var_dump($_SESSION));
+  echo '/index.html';
 }
 
-*/
 ?>

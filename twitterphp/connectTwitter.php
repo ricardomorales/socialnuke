@@ -1,6 +1,6 @@
 <?php
-/* Start session and load library. */
-session_start();
+
+/* Load library. */
 require_once('twitteroauth.php');
 require_once('config.php');
 require_once('databaseClasses.php');

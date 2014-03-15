@@ -136,11 +136,51 @@ $(document).ready(function(){
 
 
 	if($('body').hasClass("dashboard")) {
-		var userEmail = { email: getCookie("email") };
-		console.log(userEmail);
-		var twitterKeys = new PhpRequest("callback", "POST", "text", userEmail);
+		// Get the oauth verifier from the current url
+		var currentUrl = document.URL;
+		var key = "oauth_verifier";
+		var oauth_index = currentUrl.indexOf("oauth_verifier=");
+		var oauth_verifier = currentUrl.substring(oauth_index + key.length + 1, currentUrl.length);
+		
+		var userInfo = { email: getCookie("email"), oauth_verifier: oauth_verifier };
+
+		var twitterKeys = new PhpRequest("callback", "POST", "text", userInfo);
 		twitterKeys.serverConnect();
+		
 		console.log(twitterKeys.returnedData);
+	}
+
+
+	var oauth_token;
+	var oauth_token_secret;
+
+	window.launchNuke = function() {
+		// Retrieve data from the DOM we can send the info to the database
+		// and create a cookie
+		var target = $("#nuke input").val();
+		var currentUser = { email: getCookie("email") };
+
+		// Create a new request object
+		var getCredentials = new PhpRequest("launchNuke", "POST", "json", currentUser);
+		getCredentials.serverConnect();
+
+		var access_token = new Object();
+
+		for(var key in getCredentials.returnedData) {
+			access_token[key] = getCredentials.returnedData[key];
+		}
+
+		oauth_token = access_token[0]['oauth_token'];
+		oauth_token_secret = access_token[0]['oauth_token_secret'];
+
+		var nukeDetails = { oauth_token : oauth_token, oauth_token_secret: oauth_token_secret, target: target };
+
+		var eliminateUser = new DisplayDataRequest("nuke", "POST", "text", nukeDetails);
+		eliminateUser.serverConnect();
+		if( $("#nukeMessage").html() != "" ) {
+			eliminateUser.displayData("#nukeMessage");
+		}
+
 	}
 
 })
