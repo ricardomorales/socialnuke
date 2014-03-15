@@ -1,0 +1,181 @@
+$(document).ready(function(){
+
+/*=====================================================================
+	@classes
+=======================================================================
+*/
+
+	// Define the base class for a standard PHP Request
+
+	function PhpRequest(url, type, dataType, dataToSend) {
+		var self = this;
+		this.url = url;
+		this.type = type;
+		this.dataType = dataType;
+		this.dataToSend = dataToSend;
+		this.returnedData = "";
+
+		this.serverConnect = function() {
+			$.ajax({
+				async: false,
+				url: "twitterphp/"+self.url+".php",
+				data: self.dataToSend,
+				type: self.type,
+				dataType: self.dataType,
+				success: function(data, status, jqXhr){
+					if(status === "success") {
+						self.returnedData = data;
+					}
+					else {
+						alert("There was an error!");
+					}
+				}
+			})
+		}
+	}
+
+	// Extend the PHP Request class to allow for URL redirection
+
+	RedirectRequest.protoype = new PhpRequest();
+
+	function RedirectRequest() {
+		PhpRequest.apply(this, arguments);
+		this.redirectUrl = "";
+
+		// Pull a usable URL from our returned data
+		this.redirect = function() {
+			var string = this.redirectUrl;
+			var stringLocation = string.indexOf("https://");
+			var finalUrl = string.substring(stringLocation, string.length);
+			window.location.href = finalUrl;
+		}
+	}
+
+	// Extend the PHP Request class to allow for appending content to the DOM
+
+	DisplayDataRequest.prototype = new PhpRequest();
+
+	function DisplayDataRequest() {
+		PhpRequest.apply(this, arguments);
+
+		// Append the returned data to the specified target
+		this.displayData = function(target) {
+			$(target).append(this.returnedData)
+		}
+	}
+
+
+	// Functions for storing user email with a temporary cookie
+
+	window.setCookie = function(key, data, expDays) {
+		var data = data;
+		var expDays = expDays; 
+
+		// Create a new data object and set expiry based on expDays
+		var d = new Date();
+		d.setTime(d.getTime()+(expDays*24*60*60*1000));
+		var expires = "expires="+d.toGMTString();
+		
+		// Create the cookie
+		document.cookie = key + "=" + data + "; " + expires;
+	}
+
+	window.getCookie = function(key) {
+		var key = key + "=";
+		
+		// Retrieve the browser's current cookie and break at the semicolons
+		var storedCookie = document.cookie.split(';');
+		for(var i=0; i<storedCookie.length; i++)
+		{
+		  // Check each fragment to see if it matches our key
+		  var fragment = storedCookie[i].trim();
+		  if (fragment.indexOf(key)==0) return fragment.substring(key.length,fragment.length);
+		}
+		return "";
+	}
+
+
+	// Checks for a cookie based on an input key and, if it exists, returns the
+	// corresponding value
+	window.checkCookie = function(key) {
+		var key = key;
+		var currentCookie = getCookie(key)
+		if (currentCookie != "" ) {
+			return currentCookie;
+		}
+		else {
+			return false;
+		}
+	}
+
+
+/*=====================================================================
+	@requests
+=======================================================================
+*/
+
+	window.registerTwitter = function() {
+
+		// Retrieve data from the DOM we can send the info to the database
+		// and create a cookie
+		var inputEmail = $("#register input").val();
+		var user = { email : inputEmail };
+		
+		if(!checkCookie("email")) {
+			setCookie("email", inputEmail, 3);
+		}
+
+		// Create a new request object
+		var twitterCall = new RedirectRequest("connectTwitter", "POST", "text", user);
+		twitterCall.serverConnect();
+
+		// Redirect our user to the Twitter login page
+		twitterCall.redirectUrl = twitterCall.returnedData;
+		twitterCall.redirect();
+	}
+
+
+	if($('body').hasClass("dashboard")) {
+		var userEmail = { email: getCookie("email") };
+		console.log(userEmail);
+		var twitterKeys = new PhpRequest("callback", "POST", "text", userEmail);
+		twitterKeys.serverConnect();
+		console.log(twitterKeys.returnedData);
+	}
+
+})
+
+
+/*=====================================================================
+	@not in use
+=======================================================================
+
+	// Extend the PHP Request class to allow for appending content to the DOM
+
+	DatabaseRequest.prototype = new PhpRequest();
+
+	function DatabaseRequest(url, type, dataType, dataToSend) {
+		var self = this;
+		PhpRequest.apply(this, arguments);
+
+		this.dataToSend = dataToSend;
+		this.serverConnect = function() {
+			$.ajax({
+				async: false,
+				url: "twitterphp/"+self.url+".php",
+				type: self.type,
+				data: self.dataToSend,
+				dataType: "text",
+				success: function(data, status, jqXhr){
+					if(status == "success") {
+						self.returnedData = data;				
+					}
+					else {
+						alert("There was an error!");
+					}
+				}
+			})
+		}
+	}
+
+*/
