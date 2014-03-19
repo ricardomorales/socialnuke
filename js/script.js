@@ -18,7 +18,7 @@ $(document).ready(function(){
 		this.serverConnect = function() {
 			$.ajax({
 				async: false,
-				url: "twitterphp/"+self.url+".php",
+				url: "http://www.laurelpetrulionis.com/twitterphp/"+self.url+".php",
 				data: self.dataToSend,
 				type: self.type,
 				dataType: self.dataType,
@@ -131,7 +131,8 @@ $(document).ready(function(){
 
 		// Redirect our user to the Twitter login page
 		twitterCall.redirectUrl = twitterCall.returnedData;
-		twitterCall.redirect();
+		alert(twitterCall.returnedData);
+		// Commented out for now to test AJAX twitterCall.redirect();
 	}
 
 
