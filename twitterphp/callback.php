@@ -14,8 +14,8 @@ $checkUser = new User();
 $checkUser->authorizeRequest($_REQUEST['email']);
 $keys = $checkUser->getData();
 
-$oauth_token = $keys[0];
-$oauth_token_secret = $keys[1];
+$oauth_token = $keys[0]['oauth_token'];
+$oauth_token_secret = $keys[0]['oauth_token_secret'];
 
 // Create TwitteroAuth object with app key/secret and token key/secret from default phase 
 $connection = new TwitterOAuth(CONSUMER_KEY, CONSUMER_SECRET, $oauth_token, $oauth_token_secret);

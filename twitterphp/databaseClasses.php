@@ -27,6 +27,7 @@ class User {
 		$con->query("INSERT INTO users (email, oauth_token, oauth_token_secret) VALUES
 				('" . $this->email . "', '" . $this->oauth_token . "', '" . $this->oauth_token_secret . "')");
 		$con->close();
+		return $this->oauth_token;
 	}
 
 	public function logAccessKey($userEmail, $oauth_token, $oauth_token_secret) {
@@ -59,10 +60,12 @@ class User {
 			while($row = $result->fetch_assoc()) {
     			array_push($keys, $row);
     		}
-    		$data = array();
-    		array_push($data, $keys[0]['oauth_token']);
-    		array_push($data, $keys[0]['oauth_token_secret']);
-    		$this->data = $data;
+    		/* Not in use for now
+    		   $data = array();
+    		   array_push($data, $keys[0]['oauth_token']);
+    		   array_push($data, $keys[0]['oauth_token_secret']);
+    		*/
+    		$this->data = $keys;
 		}
 		else {
 			$this->data = false;
