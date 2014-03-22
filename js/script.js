@@ -116,38 +116,92 @@ $(document).ready(function(){
 
 	window.registerTwitter = function() {
 
-		// Retrieve data from the DOM we can send the info to the database
-		// and create a cookie
-		var inputEmail = $("#register input").val();
-		var user = { email : inputEmail };
-		
-		if(!checkCookie("email")) {
-			setCookie("email", inputEmail, 3);
+		if( $(".validation-error") ) {
+			$(".validation-error").remove();
 		}
 
+		// Retrieve data from the DOM we can send the info to the database
+		// and create a cookie
+		var inputEmail = $("#register input[name='email']").val();
+		var inputPassword = $("#register input[name='password']").val();
+		
+		var user = { email : inputEmail,
+					 password: inputPassword
+		 		   };
+		
+		setCookie("email", inputEmail, 3);
+		setCookie("password", inputPassword, 3);
+
 		// Create a new request object
-		var twitterCall = new RedirectRequest("connectTwitter", "POST", "text", user);
+		var twitterCall = new RedirectRequest("registerTwitter", "POST", "text", user);
 		twitterCall.serverConnect();
 
-		// Redirect our user to the Twitter login page
-		twitterCall.redirectUrl = twitterCall.returnedData;
-		twitterCall.redirect();
+		if(twitterCall.returnedData === "false") {
+			$('<p class="validation-error">Sorry, that email address is already registered.</p>').insertAfter('#register');
+		}
+		else {
+			twitterCall.redirectUrl = twitterCall.returnedData;
+			twitterCall.redirect();
+		}
+
+	}
+
+	window.loginTwitter = function() {
+
+		if( $("#validation-error") ) {
+			$("#validation-error").remove();
+		}
+
+		// Retrieve data from the DOM we can send the info to the database
+		// and create a cookie
+		var inputEmail = $("#login input[name='email']").val();
+		var inputPassword = $("#login input[name='password']").val();
+		
+		var user = { email : inputEmail,
+					 password: inputPassword
+		 		   };
+
+		setCookie("email", inputEmail, 3);
+		setCookie("password", inputPassword, 3);
+
+		// Create a new request object
+		var twitterCall = new RedirectRequest("loginTwitter", "POST", "text", user);
+		twitterCall.serverConnect();
+
+		if(twitterCall.returnedData === "false") {
+			$('<p class="validation-error">Sorry, that username / password combination not found. Please try again.</p>').insertAfter('#login');
+		}
+		else {
+			twitterCall.redirectUrl = twitterCall.returnedData;
+			twitterCall.redirect();
+		}
+
 	}
 
 
 	if($('body').hasClass("dashboard")) {
-		// Get the oauth verifier from the current url
-		var currentUrl = document.URL;
-		var key = "oauth_verifier";
-		var oauth_index = currentUrl.indexOf("oauth_verifier=");
-		var oauth_verifier = currentUrl.substring(oauth_index + key.length + 1, currentUrl.length);
-		
-		var userInfo = { email: getCookie("email"), oauth_verifier: oauth_verifier };
 
-		var twitterKeys = new PhpRequest("callback", "POST", "text", userInfo);
-		twitterKeys.serverConnect();
+		var currentUrl = document.URL;
 		
-		console.log(twitterKeys.returnedData);
+		// Get the oauth verifier from the current url
+		var key = "oauth_verifier=";
+		var oauth_index = currentUrl.indexOf(key);
+		var oauth_verifier = currentUrl.substring(oauth_index + key.length, currentUrl.length);
+		
+		var userInfo = { email: getCookie("email"),
+						 password: getCookie("password"),
+						 oauth_verifier: oauth_verifier
+						};
+
+		// Determine of the user is logged in or not
+		var loggedIn = "loggedin=true";
+		var loggedInTrue = currentUrl.indexOf(loggedIn);
+
+		if(loggedInTrue == -1) {
+			var twitterKeys = new PhpRequest("callback", "POST", "text", userInfo);
+			twitterKeys.serverConnect();
+		}
+		
 	}
 
 
@@ -158,7 +212,9 @@ $(document).ready(function(){
 		// Retrieve data from the DOM we can send the info to the database
 		// and create a cookie
 		var target = $("#nuke input").val();
-		var currentUser = { email: getCookie("email") };
+		var currentUser = { email: getCookie("email"),
+							password: getCookie("password")
+						  };
 
 		// Create a new request object
 		var getCredentials = new PhpRequest("launchNuke", "POST", "json", currentUser);
@@ -178,10 +234,15 @@ $(document).ready(function(){
 		var eliminateUser = new DisplayDataRequest("nuke", "POST", "text", nukeDetails);
 		eliminateUser.serverConnect();
 		if( $("#nukeMessage").html() != "" ) {
+			$("#nukeMessage").empty();
 			eliminateUser.displayData("#nukeMessage");
 		}
 
 	}
+
+	$('body').on('click', '.loginReveal', function(){
+		$('#login').show();
+	})
 
 })
 

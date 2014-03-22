@@ -11,7 +11,7 @@ require_once('config.php');
 require_once('databaseClasses.php');
 
 $checkUser = new User();
-$checkUser->authorizeRequest($_REQUEST['email']);
+$checkUser->authorizeRequest($_REQUEST['email'], $_REQUEST['password']);
 $keys = $checkUser->getData();
 
 $oauth_token = $keys[0]['oauth_token'];
@@ -31,7 +31,7 @@ if (isset($_REQUEST['oauth_token']) && $_SESSION['oauth_token'] !== $_REQUEST['o
 }*/
 
 // Save the access token and long-lasting credentials in a database for future use.
-$checkUser->logAccessKey($_REQUEST['email'], $access_token['oauth_token'], $access_token['oauth_token_secret']);
+$checkUser->logAccessKey($_REQUEST['email'], $_REQUEST['password'], $access_token['oauth_token'], $access_token['oauth_token_secret']);
 
 
 // If HTTP response is 200 continue otherwise send to connect page to retry

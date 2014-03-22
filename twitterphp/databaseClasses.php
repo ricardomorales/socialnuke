@@ -2,12 +2,14 @@
 
 class User {
 	private $email;
+	private $password;
 	private $oauth_token;
 	private $oauth_token_secret;
 	private $data;
 
-	public function initialize($email, $oauth_token, $oauth_token_secret) {
+	public function initialize($email, $password, $oauth_token, $oauth_token_secret) {
 		$this->email = $email;
+		$this->password = $password;
 		$this->oauth_token = $oauth_token;
 		$this->oauth_token_secret = $oauth_token_secret;
 	}
@@ -24,22 +26,47 @@ class User {
 
 	public function register() {
 		$con = $this->connect();
-		$con->query("INSERT INTO users (email, oauth_token, oauth_token_secret) VALUES
-				('" . $this->email . "', '" . $this->oauth_token . "', '" . $this->oauth_token_secret . "')");
-		$con->close();
-		return $this->oauth_token;
+		$result = $con->query("SELECT * FROM users WHERE email='" . $this->email . "'");
+		if($result->num_rows >= 1) {
+			return false;
+		}
+		else {
+			$con->query("INSERT INTO users (email, password, oauth_token, oauth_token_secret) VALUES
+					('" . $this->email . "', '" . $this->password . "', '" . $this->oauth_token . "', '" . $this->oauth_token_secret . "')");
+			$con->close();
+			return $this->oauth_token;
+		}
+		$result->close();
 	}
 
-	public function logAccessKey($userEmail, $oauth_token, $oauth_token_secret) {
+	public function login() {
+		$keys = array();
 		$con = $this->connect();
-		$con->query("UPDATE users SET oauth_token = '" . $oauth_token . "', oauth_token_secret = '" . $oauth_token_secret . "' WHERE email = '" . $userEmail . "'");
+		$result = $con->query("SELECT oauth_token FROM users WHERE email='" . $this->email . "' AND password='" . $this->password . "'");
+		if($result->num_rows >= 1) {
+			while($row = $result->fetch_assoc()) {
+    			array_push($keys, $row);
+    		}
+    		$this->data = $keys;
+    		return true;
+		}
+		else {
+			return false;
+		}
+		$result->close();
 		$con->close();
 	}
 
-	public function getCredentials($userEmail) {
+	public function logAccessKey($userEmail, $userPassword, $oauth_token, $oauth_token_secret) {
+		$con = $this->connect();
+		$con->query("UPDATE users SET oauth_token = '" . $oauth_token . "', oauth_token_secret = '" . $oauth_token_secret . "' WHERE email = '" . $userEmail . "' AND password = '" . $userPassword . "'");
+		$con->close();
+	}
+
+	public function getCredentials($userEmail, $userPassword) {
 		$info = array();
 		$con = $this->connect();
-		$result = $con->query("SELECT * FROM users WHERE email='" . $userEmail . "'");
+		$result = $con->query("SELECT * FROM users WHERE email='" . $userEmail . "' AND password='" . $userPassword . "'");
 		if($result->num_rows >= 1) {
 			while($row = $result->fetch_assoc()) {
     			array_push($info, $row);
@@ -52,10 +79,10 @@ class User {
 		$con->close();
 	}
 
-	public function authorizeRequest($userEmail) {
+	public function authorizeRequest($userEmail, $userPassword) {
 		$keys = array();
 		$con = $this->connect();
-		$result = $con->query("SELECT * FROM users WHERE email='" . $userEmail . "'");
+		$result = $con->query("SELECT * FROM users WHERE email='" . $userEmail . "' AND password='" . $userPassword . "'");
 		if($result->num_rows >= 1) {
 			while($row = $result->fetch_assoc()) {
     			array_push($keys, $row);
@@ -77,22 +104,10 @@ class User {
 		return $this->data;
 	}
 
-	/* Incomplete method
-	public function login() {
-		$con = $this->connect();
-		$email = $this->email;
-		$password = $this->password;
-		$result = $con->query("SELECT email, password FROM Users WHERE email='" . $email . "' and password='" . $password . "'");
-		if($result->num_rows >= 1) {
-			header("Location: dashboard.php");
-		}
-		else {
-			header("Location: index.php");
-		}
-		$result->close();
-		$con->close();
+	public function getPassword() {
+		return $this->password;
 	}
-	*/
+	
 }
 
 ?>
