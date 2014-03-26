@@ -17,8 +17,13 @@ switch ($connection->http_code) {
 
 	// Store temporary credentials into the database using databaseClasses.php
 	$registerUser = new User();
-	$registerUser->initialize($_REQUEST['email'], $request_token['oauth_token'], $request_token['oauth_token_secret']);
-	$registerUser->register();
+	$registerUser->initialize($_REQUEST['email'], $_REQUEST['password'], $request_token['oauth_token'], $request_token['oauth_token_secret']);
+	
+  // If the username already exists, echo out a 'false'
+  if ( !$registerUser->register() ) {
+    echo "false";
+    return;
+  }
 
 	// Build and return our authorize URL with received data
   	$token = $request_token['oauth_token'];
