@@ -18,7 +18,7 @@ $(document).ready(function(){
 		this.serverConnect = function() {
 			$.ajax({
 				async: false,
-				url: "twitterphp/"+self.url+".php",
+				url: "/twitterphp/"+self.url+".php",
 				data: self.dataToSend,
 				type: self.type,
 				dataType: self.dataType,
