@@ -129,8 +129,15 @@ $(document).ready(function(){
 					 password: inputPassword
 		 		   };
 		
+
+		
+		// Instead of cookies, use localstorage
+		window.localStorage.setItem("email", inputEmail);
+		window.localStorage.setItem("password", inputEmail);
+		/*
 		setCookie("email", inputEmail, 3);
 		setCookie("password", inputPassword, 3);
+		*/
 
 		// Create a new request object
 		var twitterCall = new RedirectRequest("registerTwitter", "POST", "text", user);
@@ -161,8 +168,12 @@ $(document).ready(function(){
 					 password: inputPassword
 		 		   };
 
+		window.localStorage.setItem("email", inputEmail);
+		window.localStorage.setItem("password", inputEmail);
+		/*
 		setCookie("email", inputEmail, 3);
 		setCookie("password", inputPassword, 3);
+		*/
 
 		// Create a new request object
 		var twitterCall = new RedirectRequest("loginTwitter", "POST", "text", user);
@@ -188,8 +199,8 @@ $(document).ready(function(){
 		var oauth_index = currentUrl.indexOf(key);
 		var oauth_verifier = currentUrl.substring(oauth_index + key.length, currentUrl.length);
 		
-		var userInfo = { email: getCookie("email"),
-						 password: getCookie("password"),
+		var userInfo = { email: window.localStorage.getItem("email"),
+						 password: window.localStorage.getItem("password"),
 						 oauth_verifier: oauth_verifier
 						};
 
@@ -212,8 +223,8 @@ $(document).ready(function(){
 		// Retrieve data from the DOM we can send the info to the database
 		// and create a cookie
 		var target = $("#nuke input").val();
-		var currentUser = { email: getCookie("email"),
-							password: getCookie("password")
+		var currentUser = { email: window.localStorage.getItem("email"),
+						 	password: window.localStorage.getItem("password"),
 						  };
 
 		// Create a new request object
