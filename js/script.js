@@ -133,7 +133,7 @@ $(document).ready(function(){
 		
 		// Instead of cookies, use localstorage
 		window.localStorage.setItem("email", inputEmail);
-		window.localStorage.setItem("password", inputEmail);
+		window.localStorage.setItem("password", inputPassword);
 		/*
 		setCookie("email", inputEmail, 3);
 		setCookie("password", inputPassword, 3);
